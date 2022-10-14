@@ -20,5 +20,5 @@ func init() {
 	flag.StringVar(&args.ices, "ices", "", "file or http(s) link to get ice servers")
 
 	flag.StringVar(&args.addr, "addr", "", "")
-	flag.IntVar(&args.port, "port", 1080, "")
+	flag.IntVar(&args.port, "port", 0, "the default value is 1080 when run as client")
 }

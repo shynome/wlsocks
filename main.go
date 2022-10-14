@@ -15,6 +15,9 @@ func main() {
 		return
 	}
 	if args.user != "" {
+		if args.port == 0 {
+			args.port = 1080
+		}
 		runClient()
 		return
 	}
