@@ -13,9 +13,8 @@ import (
 	"github.com/pion/webrtc/v3"
 	"github.com/shynome/wl"
 	"github.com/shynome/wl/ortc"
+	"github.com/shynome/wlsocks/lens"
 )
-
-const LinkTopic = "link"
 
 func runServer() {
 
@@ -56,7 +55,7 @@ type Server struct {
 
 func (s *Server) openStream() (stream *eventsource.Stream, err error) {
 	defer err2.Return(&err)
-	endpoint := try.To1(WithTopic(args.lens, LinkTopic))
+	endpoint := try.To1(WithTopic(args.lens, lens.LinkTopic))
 	req := try.To1(http.NewRequest(http.MethodGet, endpoint, nil))
 	req.SetBasicAuth(args.user, args.pass)
 	stream = try.To1(eventsource.SubscribeWithRequest("", req))
@@ -69,20 +68,14 @@ func (s *Server) serveLoop(evs chan eventsource.Event) {
 	}
 }
 
-type ConnectInfo struct {
-	Offer ortc.Signal
-	Ices  []webrtc.ICEServer
-}
-
 func (s *Server) handleConnect(ev eventsource.Event) (err error) {
 	defer err2.Return(&err)
 
 	var (
-		lens = s.lens
-		api  = s.wrtcApi
+		api = s.wrtcApi
 	)
 
-	var info ConnectInfo
+	var info lens.ConnectInfo
 	try.To(json.Unmarshal([]byte(ev.Data()), &info))
 
 	config := webrtc.Configuration{
@@ -93,7 +86,7 @@ func (s *Server) handleConnect(ev eventsource.Event) (err error) {
 	var offer ortc.Signal = info.Offer
 	roffer := try.To1(ortc.HandleConnect(pc, offer))
 	rofferBytes := try.To1(json.Marshal(roffer))
-	try.To(lens.Dial(LinkTopic, ev.Id(), rofferBytes))
+	try.To(s.lens.Dial(lens.LinkTopic, ev.Id(), rofferBytes))
 
 	peer := &wl.Peer{PC: pc}
 	s.listener.Add(peer)
