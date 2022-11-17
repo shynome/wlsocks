@@ -74,11 +74,11 @@ func WithTopic(endpoint string, topic string) (rEndpoint string, err error) {
 
 func CheckResp(resp *http.Response) (err error) {
 	defer err2.Return(&err)
-	if resp.StatusCode != 200 {
-		defer resp.Body.Close()
-		errText := try.To1(io.ReadAll(resp.Body))
-		err = fmt.Errorf("server err. code: %v. content: %s", resp.StatusCode, errText)
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		return
 	}
+	defer resp.Body.Close()
+	errText := try.To1(io.ReadAll(resp.Body))
+	err = fmt.Errorf("server err. code: %v. content: %s", resp.StatusCode, errText)
 	return
 }
