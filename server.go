@@ -28,11 +28,7 @@ func runServer() {
 	settingEngine.SetICEUDPMux(webrtc.NewICEUDPMux(nil, udpListener))
 	api := webrtc.NewAPI(webrtc.WithSettingEngine(settingEngine))
 
-	lens := &Lens{
-		Endpoint: args.lens,
-		User:     args.user,
-		Pass:     args.pass,
-	}
+	lens := lens.New(args.lens, args.user, args.pass)
 
 	s := &Server{
 		listener: l,
@@ -48,14 +44,14 @@ func runServer() {
 }
 
 type Server struct {
-	lens     *Lens
+	lens     *lens.Lens
 	wrtcApi  *webrtc.API
 	listener *wl.Listener
 }
 
 func (s *Server) openStream() (stream *eventsource.Stream, err error) {
 	defer err2.Return(&err)
-	endpoint := try.To1(WithTopic(args.lens, lens.LinkTopic))
+	endpoint := try.To1(lens.WithTopic(args.lens, lens.LinkTopic))
 	req := try.To1(http.NewRequest(http.MethodGet, endpoint, nil))
 	req.SetBasicAuth(args.user, args.pass)
 	stream = try.To1(eventsource.SubscribeWithRequest("", req))
